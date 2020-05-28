@@ -1,82 +1,81 @@
-const song = document.querySelector(".song");
-const play = document.querySelector(".play");
-const replay = document.querySelector(".replay");
-const outline = document.querySelector(".moving-outline circle");
-const video = document.querySelector(".vid-container video");
-//Sounds
-const sounds = document.querySelectorAll(".sound-picker button");
-//Time Display
-const timeDisplay = document.querySelector(".time-display");
-const outlineLength = outline.getTotalLength();
-//Duration
-const timeSelect = document.querySelectorAll(".time-select button");
-let fakeDuration = 600;
+const app = () => {
+    const alarm = document.querySelector(".alarm");
+    const play = document.querySelector(".play");
+    const outline = document.querySelector(".moving-outline circle");
 
-outline.style.strokeDashoffset = outlineLength;
-outline.style.strokeDasharray = outlineLength;
-timeDisplay.textContent = `${Math.floor(fakeDuration / 60)}:${Math.floor(
-  fakeDuration % 60
-)}`;
+    const timeDisplay = document.querySelector(".time-display");
 
-sounds.forEach(sound => {
-  sound.addEventListener("click", function() {
-    song.src = this.getAttribute("data-sound");
-    video.src = this.getAttribute("data-video");
-    checkPlaying(song);
-  });
-});
+    const outlineLen = outline.getTotalLength();
 
-play.addEventListener("click", function() {
-  checkPlaying(song);
-});
+    const timeSelect = document.querySelectorAll(".time-select button");
+    let duration = 30;
+    let running = false;
+    let paused = false;
+    let currentTime = 0;
 
-replay.addEventListener("click", function() {
-    restartSong(song);
-    
-  });
+    outline.style.strokeDasharray = outlineLen;
+    outline.style.strokeDashoffset = outlineLen;
+    let min = Math.floor(duration / 60);
+    let sec = Math.floor(duration % 60);
+    min = String(min).padStart(2, '0');
+    sec = String(sec).padStart(2, '0');
+    timeDisplay.textContent = `${min}:${sec}`;
 
+    play.addEventListener("click", function() {
+        console.log("clicked play");
+        if(!running) { 
+            running = true;
+            paused = false;
+            play.src = "./svg/pause.svg";
+        } else {
+            running = false;
+            play.src = "./svg/play.svg";
+            paused = true;
+        }
+        updateTimer;
+    });
 
-const restartSong = song =>{
-    let currentTime = song.currentTime;
-    song.currentTime = 0;
-    console.log("ciao")
+    timeSelect.forEach(option => {
+        option.addEventListener("click", function() {
+            duration = this.getAttribute("data-time");
+            let min = Math.floor(duration / 60);
+            let sec = Math.floor(duration % 60);
+            min = String(min).padStart(2, '0');
+            sec = String(sec).padStart(2, '0');
+            timeDisplay.textContent = `${min}:${sec}`;
+            currentTime = 0;
+            running = false;
+            play.src = "./svg/play.svg";
+        });
+    });
+
+    const updateTimer = setInterval(timer, 1000);
+    function timer() {
+        if (!paused && running) {
+            currentTime ++;
+        }
+        let elapsed = duration - currentTime;
+        let min = Math.floor(elapsed / 60);
+        let sec = Math.floor(elapsed % 60);
+        min = String(min).padStart(2, '0');
+        sec = String(sec).padStart(2, '0');
+        timeDisplay.textContent = `${min}:${sec}`;
+        let progress = outlineLen - (currentTime / duration) * outlineLen;      
+        outline.style.strokeDashoffset = progress;
+      
+        if (currentTime >= duration) {
+            let min = Math.floor(duration / 60);
+            let sec = Math.floor(duration % 60);
+            min = String(min).padStart(2, '0');
+            sec = String(sec).padStart(2, '0');
+            timeDisplay.textContent = `${min}:${sec}`;
+            outline.style.strokeDashoffset = outlineLen;
+            alarm.play();
+            currentTime = 0;
+            updateTimer;
+        }
+    };
 
 }
 
-timeSelect.forEach(option => {
-  option.addEventListener("click", function() {
-    fakeDuration = this.getAttribute("data-time");
-    timeDisplay.textContent = `${Math.floor(fakeDuration / 60)}:${Math.floor(
-      fakeDuration % 60
-    )}`;
-  });
-});
-
-const checkPlaying = song => {
-  if (song.paused) {
-    song.play();
-    video.play();
-    play.src = "./svg/pause.svg";
-  } else {
-    song.pause();
-    video.pause();
-    play.src = "./svg/play.svg";
-  }
-};
-
-song.ontimeupdate = function() {
-  let currentTime = song.currentTime;
-  let elapsed = fakeDuration - currentTime;
-  let seconds = Math.floor(elapsed % 60);
-  let minutes = Math.floor(elapsed / 60);
-  timeDisplay.textContent = `${minutes}:${seconds}`;
-  let progress = outlineLength - (currentTime / fakeDuration) * outlineLength;
-  outline.style.strokeDashoffset = progress;
-
-  if (currentTime >= fakeDuration) {
-    song.pause();
-    song.currentTime = 0;
-    play.src = "./svg/play.svg";
-    video.pause();
-  }
-};
+app();
