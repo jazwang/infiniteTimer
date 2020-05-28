@@ -22,7 +22,6 @@ const app = () => {
     timeDisplay.textContent = `${min}:${sec}`;
 
     play.addEventListener("click", function() {
-        console.log("clicked play");
         if(!running) { 
             running = true;
             paused = false;
